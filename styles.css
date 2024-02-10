@@ -43,4 +43,11 @@
 /* CSS for Create Promise button */
 .message-form button {
     background-color: #4CAF50; /* Green button */
+    display: none; /* Initially hide the Create Promise button */
+}
+
+/* CSS for Your Promise text and input box */
+.message-form h2,
+.message-form textarea {
+    display: none; /* Initially hide Your Promise text and input box */
 }
