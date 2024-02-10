@@ -1,77 +1,82 @@
 document.addEventListener("DOMContentLoaded", function() {
-  const categoryButtons = document.querySelectorAll(".category-buttons button");
-  const prompts = document.querySelectorAll(".prompts div");
-  const messageForm = document.querySelector(".message-form");
-  const copyLinkButton = document.querySelector(".copy-link-button");
+    const categoryButtons = document.querySelectorAll(".category-buttons button");
+    const messageForm = document.querySelector(".message-form");
+    const createPromiseButton = document.querySelector(".message-form button");
+    const messageInput = document.getElementById("message");
 
-  // Hide copy link button initially
-  copyLinkButton.style.display = "none";
+    // Function to show Your Promise text and input box, and Create Promise button
+    function showPromiseForm() {
+        document.querySelector(".message-form h2").style.display = "block";
+        messageInput.style.display = "block";
+        createPromiseButton.style.display = "block";
+    }
 
-  // Function to show prompts based on selected category and change background color
-  function showPrompts(category) {
-    prompts.forEach(prompt => {
-      prompt.style.display = "none";
+    // Function to parse URL parameters
+    function getUrlParameter(name) {
+        name = name.replace(/[[]/, '\\[').replace(/[\]]/, '\\]');
+        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        const results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // Event listener for category buttons
+    categoryButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            // Remove "active" class from all buttons
+            categoryButtons.forEach(btn => {
+                btn.classList.remove("active");
+            });
+            // Add "active" class to the clicked button
+            this.classList.add("active");
+
+            // Show Your Promise text and input box, and Create Promise button
+            showPromiseForm();
+
+            // Change background color of the whole page based on category
+            document.body.style.backgroundColor = window.getComputedStyle(button).backgroundColor;
+        });
     });
 
-    document.querySelector(`.${category}-prompts`).style.display = "block";
-    messageForm.style.display = "block"; // Show the message form
+    // Function to generate unique ID
+    function generateUniqueId() {
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
 
-    // Change background color based on category
-    const categoryColors = {
-      love: "red",
-      support: "blue",
-      adventure: "green",
-      communication: "yellow"
-    };
-    document.querySelector(".prompts").style.backgroundColor = categoryColors[category];
-  }
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+        const tempInput = document.createElement("input");
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+    }
 
-  // Event listener for category buttons
-  categoryButtons.forEach(button => {
-    button.addEventListener("click", function() {
-      const category = this.className; // Get the category class name
-      showPrompts(category);
+    // Event listener for Create Promise button
+    createPromiseButton.addEventListener("click", function() {
+        const promiseId = generateUniqueId();
+        const selectedCategoryButton = document.querySelector(".category-buttons button.active");
+        const promiseCategory = selectedCategoryButton ? selectedCategoryButton.classList[0] : "";
+        const promiseMessage = messageInput.value;
+
+        const promiseLink = window.location.href + "?promiseId=" + promiseId + "&category=" + promiseCategory + "&message=" + encodeURIComponent(promiseMessage);
+
+        // Copy the generated link to clipboard
+        copyToClipboard(promiseLink);
+        alert("Link copied to clipboard!");
     });
-  });
 
-  // Function to generate unique ID
-  function generateUniqueId() {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  }
+    // Check if the page was loaded from a copied link
+    const promiseId = getUrlParameter("promiseId");
+    if (promiseId) {
+        // Set background color based on category
+        const category = getUrlParameter("category");
+        const categoryButton = document.querySelector("." + category);
+        document.body.style.backgroundColor = window.getComputedStyle(categoryButton).backgroundColor;
 
-  // Function to copy text to clipboard
-  function copyToClipboard(text) {
-    const tempInput = document.createElement("input");
-    tempInput.value = text;
-    document.body.appendChild(tempInput);
-    tempInput.select();
-    document.execCommand("copy");
-    document.body.removeChild(tempInput);
-  }
-
-  // Form submission event listener
-  messageForm.addEventListener("submit", function(event) {
-    event.preventDefault();
-    const message = document.getElementById("message").value;
-    const uniqueId = generateUniqueId();
-    const promiseLink = window.location.href + "?promiseId=" + uniqueId;
-    // Here you can handle the promise creation or share the promiseLink
-    console.log("Promise message:", message);
-    console.log("Unique ID:", uniqueId);
-    console.log("Promise Link:", promiseLink);
-
-    // Copy the generated link automatically
-    copyToClipboard(promiseLink);
-    alert("Link copied to clipboard!");
-
-    // Show the copy link button
-    copyLinkButton.style.display = "block";
-  });
-
-  // Event listener for copy link button
-  copyLinkButton.addEventListener("click", function() {
-    const promiseLink = window.location.href + "?promiseId=" + generateUniqueId();
-    copyToClipboard(promiseLink);
-    alert("Link copied to clipboard!");
-  });
+        // Display the promise message
+        const message = getUrlParameter("message");
+        messageInput.value = decodeURIComponent(message);
+        showPromiseForm();
+    }
 });
